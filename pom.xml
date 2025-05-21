@@ -19,12 +19,17 @@
 
     <properties>
         <java.version>17</java.version>
+        <opencv.version>4.7.0-1.5.9</opencv.version>
     </properties>
 
     <repositories>
         <repository>
             <id>bytedeco</id>
             <url>https://raw.githubusercontent.com/bytedeco/javacpp-presets/master/opencv/cppbuild/</url>
+        </repository>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
         </repository>
     </repositories>
 
@@ -38,6 +43,13 @@
             <groupId>com.github.sarxos</groupId>
             <artifactId>webcam-capture</artifactId>
             <version>0.3.12</version>
+        </dependency>
+
+        <!-- OpenCV -->
+        <dependency>
+            <groupId>org.bytedeco</groupId>
+            <artifactId>opencv-platform</artifactId>
+            <version>${opencv.version}</version>
         </dependency>
 
         <dependency>
@@ -73,12 +85,11 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.11.0</version>
                 <configuration>
-                    <source>${java.version}</source>
-                    <target>${java.version}</target>
-                    <fork>true</fork>
-                    <compilerArgs>
-                        <arg>-J-Djps.track.ap.dependencies=false</arg>
-                    </compilerArgs>
+                    <source>17</source>
+                    <target>17</target>
+                    <systemProperties>
+                        <jps.track.ap.dependencies>false</jps.track.ap.dependencies>
+                    </systemProperties>
                 </configuration>
             </plugin>
         </plugins>
