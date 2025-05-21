@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Трансляция с веб-камеры</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        #videoContainer {
+            margin: 20px 0;
+            background-color: #000;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        #videoStream {
+            width: 100%;
+            max-width: 800px;
+            height: auto;
+        }
+        .status {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .error {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        .success {
+            background-color: #e8f5e9;
+            color: #2e7d32;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Трансляция с веб-камеры</h1>
+        <div id="videoContainer">
+            <img id="videoStream" alt="Трансляция с веб-камеры">
+        </div>
+        <div id="status" class="status"></div>
+    </div>
+
+    <script>
+        const videoStream = document.getElementById('videoStream');
+        const statusDiv = document.getElementById('status');
+        let isStreaming = false;
+
+        function updateStatus(message, isError = false) {
+            statusDiv.textContent = message;
+            statusDiv.className = 'status ' + (isError ? 'error' : 'success');
+        }
+
+        function startStreaming() {
+            if (isStreaming) return;
+            isStreaming = true;
+            updateStatus('Трансляция запущена');
+
+            function updateFrame() {
+                if (!isStreaming) return;
+
+                fetch('/api/webcam/stream')
+                    .then(response => {
+                        if (!response.ok) throw new Error('Ошибка получения кадра');
+                        return response.blob();
+                    })
+                    .then(blob => {
+                        const imageUrl = URL.createObjectURL(blob);
+                        videoStream.src = imageUrl;
+                        setTimeout(updateFrame, 100); // Обновляем каждые 100мс
+                    })
+                    .catch(error => {
+                        console.error('Ошибка:', error);
+                        updateStatus('Ошибка получения кадра: ' + error.message, true);
+                        isStreaming = false;
+                    });
+            }
+
+            updateFrame();
+        }
+
+        function stopStreaming() {
+            isStreaming = false;
+            updateStatus('Трансляция остановлена');
+        }
+
+        // Запускаем трансляцию при загрузке страницы
+        window.onload = startStreaming;
+
+        // Останавливаем трансляцию при закрытии страницы
+        window.onbeforeunload = stopStreaming;
+    </script>
+</body>
+</html> 

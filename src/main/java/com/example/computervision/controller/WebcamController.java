@@ -24,4 +24,15 @@ public class WebcamController {
         }
         return ResponseEntity.badRequest().body("{\"error\": \"Не удалось получить изображение с камеры\"}");
     }
+
+    @GetMapping(value = "/stream", produces = MediaType.IMAGE_JPEG_VALUE)
+    public ResponseEntity<byte[]> streamImage() {
+        byte[] imageBytes = webcamService.captureImageBytes();
+        if (imageBytes != null) {
+            return ResponseEntity.ok()
+                    .contentType(MediaType.IMAGE_JPEG)
+                    .body(imageBytes);
+        }
+        return ResponseEntity.badRequest().build();
+    }
 } 

@@ -20,6 +20,8 @@ public class WebcamService {
     @PostConstruct
     public void init() {
         try {
+            log.info("Начинаем инициализацию веб-камеры...");
+            
             // Получаем список всех доступных камер
             List<Webcam> webcams = Webcam.getWebcams();
             
@@ -32,27 +34,29 @@ public class WebcamService {
             log.info("Найдено камер: {}", webcams.size());
             for (int i = 0; i < webcams.size(); i++) {
                 Webcam cam = webcams.get(i);
-                log.info("Камера {}: {}", i, cam.getName());
+                log.info("Камера {}: {} (разрешение: {}x{})", 
+                    i, 
+                    cam.getName(),
+                    cam.getViewSize().getWidth(),
+                    cam.getViewSize().getHeight());
             }
 
-            // Выбираем внешнюю камеру (обычно она вторая в списке)
-            // Если это не так, можно изменить индекс
-            int selectedCameraIndex = 1; // Индекс внешней камеры
-            if (selectedCameraIndex < webcams.size()) {
-                webcam = webcams.get(selectedCameraIndex);
-                webcam.open();
-                isInitialized = true;
-                log.info("Выбрана камера: {}", webcam.getName());
-            } else {
-                log.error("Внешняя камера не найдена");
-            }
+            // Используем первую камеру (индекс 0)
+            webcam = webcams.get(0);
+            log.info("Пытаемся открыть камеру: {}", webcam.getName());
+            
+            webcam.open();
+            isInitialized = true;
+            log.info("Камера успешно инициализирована: {}", webcam.getName());
+            
         } catch (Exception e) {
-            log.error("Не удалось инициализировать веб-камеру: {}", e.getMessage());
+            log.error("Не удалось инициализировать веб-камеру: {}", e.getMessage(), e);
         }
     }
 
     public String captureImage() {
         if (!isInitialized) {
+            log.error("Попытка захвата изображения при неинициализированной камере");
             throw new RuntimeException("Веб-камера не инициализирована");
         }
 
@@ -64,7 +68,26 @@ public class WebcamService {
                 return Base64.getEncoder().encodeToString(baos.toByteArray());
             }
         } catch (Exception e) {
-            log.error("Ошибка при захвате изображения: {}", e.getMessage());
+            log.error("Ошибка при захвате изображения: {}", e.getMessage(), e);
+        }
+        return null;
+    }
+
+    public byte[] captureImageBytes() {
+        if (!isInitialized) {
+            log.error("Попытка захвата изображения при неинициализированной камере");
+            throw new RuntimeException("Веб-камера не инициализирована");
+        }
+
+        try {
+            BufferedImage image = webcam.getImage();
+            if (image != null) {
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                ImageIO.write(image, "jpg", baos);
+                return baos.toByteArray();
+            }
+        } catch (Exception e) {
+            log.error("Ошибка при захвате изображения: {}", e.getMessage(), e);
         }
         return null;
     }
